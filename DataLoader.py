@@ -171,7 +171,7 @@ class DataLoader:
         if len(f) > 0:
             return ', '.join(map(lambda x: x, f))
         return 'no_colors'
-
+    # "[а-я]+\.\s[а-я"\.]+
     def load_data(self, path: str, drop_fields:list):
         df = pd.read_csv(path)
         #print(list(df.values))
