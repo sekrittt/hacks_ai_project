@@ -7,7 +7,9 @@ from DataLoader import DataLoader
 any_js = """
         WebIO._state.CurrentSession.ws.addEventListener('close', () => {
             console.log('Test!')
-            window.location.reload()
+            setTimeout(() => {
+                window.location.reload()
+            }, 4000)
         })
 """
 

@@ -92,7 +92,7 @@ class DataLoader:
         return 0
 
     def __get_street(self, desc:str):
-        f = re.search(r'ул\. (\w+)\s', desc)
+        f = re.search(r'(?:ул\.|улица) (\w+)\s', desc)
         if not f is None:
             return f[1]
         return 'no_street'
@@ -101,7 +101,6 @@ class DataLoader:
         res = ('женщин' in desc) \
                 or ('мужчин' in desc) \
                 or ('мальчик' in desc) \
-                or ('девочк' in desc) \
                 or ('девушк' in desc) \
                 or ('участники' in desc) \
                 or ('секретарь' in desc) \
@@ -111,7 +110,7 @@ class DataLoader:
                 or ('крестьянин' in desc) \
                 or ('дочь' in desc) \
                 or ('член ' in desc) \
-                or ('парад' in desc)
+                or ('коллектив' in desc)
 
     #	print(res)
         return int(res)
@@ -138,7 +137,7 @@ class DataLoader:
         return 0
 
     def __get_photograph(self, desc:str):
-        f = re.search(r'\s([\w\s\(\)]+) \(фотограф\)', desc)
+        f = re.search(r'\s((?:[\w\s\(\)]|\[[\w\s\(\)]\])+) \(фотограф\)', desc)
         # print(f)
         if not f is None:
             return f[1]
@@ -192,17 +191,18 @@ class DataLoader:
         df['tempera'] = df.description.map(lambda x: int('темпера' in x))
         df['glass'] = df.description.map(lambda x: int('стекло' in x))
         df['forging'] = df.description.map(lambda x: int('ковка' in x))
-        df['plant'] = df.description.map(lambda x: int('цветок' in x or 'плод' in x or 'растение' in x or 'ветвь' in x))
+        # df['plant'] = df.description.map(lambda x: int('цветок' in x or 'плод' in x or 'растение' in x or 'ветвь' in x))
         df['three_formate'] = df.description.map(lambda x: int('лист а3' in x))
         df['spectacle'] = df.description.map(lambda x: int('спектакл' in x))
         df['panorama'] = df.description.map(lambda x: int('панорама' in x))
         df['pendant'] = df.description.map(lambda x: int('подвеск' in x))
-        df['permeation'] = df.description.map(lambda x: int('пронизк' in x))
+        # df['permeation'] = df.description.map(lambda x: int('пронизк' in x))
         df['table'] = df.description.map(lambda x: int('стол' in x))
         df['order'] = df.description.map(lambda x: int('орден' in x))
         df['bird'] = df.description.map(lambda x: int('птиц' in x))
         df['animal'] = df.description.map(lambda x: int('животны' in x))
         df['weapon'] = df.description.map(lambda x: int('оружие' in x))
+        df['have_street'] = df.description.map(lambda x: int('улиц' in x))
         # df['is_perm'] = df.description.map(lambda x: int('перм' in x))
         df['is_ussr'] = df.description.map(lambda x: int('ссср' in x))
         # df['is_enamel'] = df.description.map(lambda x: int('эмаль' in x))
@@ -219,7 +219,9 @@ class DataLoader:
                                                             or 'училище' in x \
                                                             or 'химкомплекс' in x \
                                                             or 'дворец' in x \
-                                                            or 'аптека' in x ))
+                                                            or 'аптека' in x \
+                                                            or 'госпитал' in x \
+                                                            or 'завод ' in x ))
         df['have_window'] = df.description.map(lambda x: int(' окн' in x))
         df['have_glasses'] = df.description.map(lambda x: int(' очк' in x))
         df['have_paint'] = df.description.map(lambda x: int('пейзаж' in x))

@@ -4,7 +4,7 @@ from sklearn.ensemble import RandomForestClassifier
 from sklearn.linear_model import LinearRegression
 from sklearn.metrics import r2_score
 import numpy as np
-import os, pickle, csv, sys
+import os, pickle, csv, sys, datetime
 from DataLoader import DataLoader
 
 colors = [
@@ -107,7 +107,7 @@ colors = [
 
 class Network:
 	def __init__(self):
-		self.reg = LinearRegression(normalize=True)
+		self.reg = LinearRegression()
 		self.last_accuracy = '0%'
 
 	def train(self, x, y):
@@ -164,7 +164,6 @@ if __name__ == "__main__":
 
 	p = net.test(test_X)
 	# print(p)
-	os.remove('solution.csv')
 	data = {}
 	with open('data.csv', 'r', encoding='utf-8') as f:
 		reader = csv.reader(f, delimiter=',', quotechar='"')
@@ -175,7 +174,7 @@ if __name__ == "__main__":
 				data[row[0]] = p[i]
 			else:
 				break
-	with open('solution.csv', 'w', encoding='utf-8') as f:
+	with open(f'solution-{str(datetime.datetime.today())}.csv', 'w', encoding='utf-8') as f:
 		f.write('id,object_img\n')
 		for key, value in list(data.items()):
 			f.write(f'{key},{value}\n')
