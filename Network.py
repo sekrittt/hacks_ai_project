@@ -4,7 +4,7 @@ from sklearn.ensemble import RandomForestClassifier
 from sklearn.linear_model import LinearRegression
 from sklearn.metrics import r2_score
 import numpy as np
-import os, pickle, csv, sys, datetime
+import os, pickle, csv, sys, datetime, re
 from DataLoader import DataLoader
 
 colors = [
@@ -174,7 +174,8 @@ if __name__ == "__main__":
 				data[row[0]] = p[i]
 			else:
 				break
-	with open(f'solution-{str(datetime.datetime.today())}.csv', 'w', encoding='utf-8') as f:
+	d = re.sub(r'\s', 'T', str(datetime.datetime.today()))
+	with open(f'solution-{d}.csv', 'w', encoding='utf-8') as f:
 		f.write('id,object_img\n')
 		for key, value in list(data.items()):
 			f.write(f'{key},{value}\n')
