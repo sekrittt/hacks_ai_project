@@ -9,7 +9,7 @@ any_js = """
             console.log('Test!')
             setTimeout(() => {
                 window.location.reload()
-            }, 4000)
+            }, 100)
         })
 """
 
@@ -61,6 +61,7 @@ def main():
         c = 0
         for g, img in enumerate(pred):
             if img in list(y_test):
+                print(f'{g=}, {img=}')
                 c += 1
 
         print(f'Count: {c}, {((c/len(y_test))*100):.3f}%')
@@ -73,8 +74,8 @@ def main():
 
     def b():
         global history
-        X, y = loader.load_data('train.csv', ["description","object_img", 'id'])
-        X_train, X_test, y_train, y_test = net.tts(X, y, test_size=0.3, random_state=42, shuffle=False)
+        X, y, y_indexes = loader.load_data('train.csv', ["description","object_img", 'id'])
+        X_train, X_test, y_train, y_test = net.tts(X, y_indexes, test_size=0.3, random_state=42, shuffle=False)
 
         net.train(X, y)
 

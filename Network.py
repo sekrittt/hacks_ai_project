@@ -174,8 +174,8 @@ if __name__ == "__main__":
 				data[row[0]] = p[i]
 			else:
 				break
-	d = re.sub(r'\s', 'T', str(datetime.datetime.today()))
-	with open(f'solution-{d}.csv', 'w', encoding='utf-8') as f:
+	d = re.sub(r'[\-\:\.]', '_', re.sub(r'\s', 'T', str(datetime.datetime.today())))
+	with open(f'solution_{d}.csv', 'w', encoding='utf-8') as f:
 		f.write('id,object_img\n')
 		for key, value in list(data.items()):
 			f.write(f'{key},{value}\n')
