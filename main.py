@@ -3,6 +3,7 @@ from fuzzywuzzy import fuzz, process
 from Network import Network
 from PIL import Image
 from DataLoader import DataLoader
+from get_filters import get_filters
 
 any_js = """
         WebIO._state.CurrentSession.ws.addEventListener('close', () => {
@@ -74,7 +75,9 @@ def main():
 
     def b():
         global history
-        X, y, y_indexes = loader.load_data('train.csv', ["description","object_img", 'id'])
+        filters = get_filters()
+
+        X, y, y_indexes = loader.load_data('train.csv', ["description","object_img", 'id'], get_filters())
         X_train, X_test, y_train, y_test = net.tts(X, y_indexes, test_size=0.3, random_state=42, shuffle=False)
 
         net.train(X, y)

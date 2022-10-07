@@ -172,61 +172,33 @@ class DataLoader:
             return ', '.join(map(lambda x: x, f))
         return 'no_colors'
     # "[а-я]+\.\s[а-я"\.]+
-    def load_data(self, path: str, drop_fields:list):
+    def load_data(self, path: str, drop_fields:list, filters: list[dict]):
         df = pd.read_csv(path)
         #print(list(df.values))
         df['description'] = df.description.map(lambda x: re.sub(r'\s+', ' ', x).lower())
         df["len_description"] = df.description.map(len)
-        df["object"] = df["description"].map(lambda x : re.sub(r'\W', ' ', x.split('.')[0]).strip())
         df['othersymbolscount'] = df.description.map(lambda x: len(re.findall(r'\W', x)))
 
-        df["object"] = pd.Categorical(df["object"])
-        df["object"].astype('category').cat.codes
-        df["object"] = df["object"].cat.codes
+        for filt in filters:
+            df[filt["name"]] = df.description.map(lambda x: filt["word"] in x)
+
 
         df['have_pokm'] = df.description.map(lambda x: int('покм' in x))
         df['have_pkm'] = df.description.map(lambda x: int('пкм' in x))
-        df['photo_print'] = df.description.map(lambda x: int('фотопечать' in x))
         df['stamping_or_coinage'] = df.description.map(lambda x: int('штамповка' in x or 'чеканка' in x))
-        df['coinage'] = df.description.map(lambda x: int('чеканка' in x))
-        df['photography'] = df.description.map(lambda x: int('фотосъемка' in x))
-        df['tape'] = df.description.map(lambda x: int('плёнка' in x or 'пленочный' in x))
-        df['photo_paper'] = df.description.map(lambda x: int('фотобумага' in x))
         df['paperboard'] = df.description.map(lambda x: int('картон' in x))
-        df['oil'] = df.description.map(lambda x: int('масло' in x))
-        df['wood'] = df.description.map(lambda x: int('дерево' in x))
         df['tree'] = df.description.map(lambda x: int('дерев' in x))
-        df['is_photo'] = df.description.map(lambda x: int('фотография' in x))
-        df['congress'] = df.description.map(lambda x: int('съезд' in x))
-        df['congress_num'] = df.description.map(self.__get_congress_num)
-        df['photo_annot'] = df.description.map(lambda x: int('фотография аннотирована' in x))
-        df['plenum'] = df.description.map(lambda x: int('пленум' in x))
-        df['plenum_num'] = df.description.map(self.__get_plenum_num)
-        df['manuscript'] = df.description.map(lambda x: int('рукопись' in x))
-        df['painting'] = df.description.map(lambda x: int('роспись' in x))
-        df['pasta'] = df.description.map(lambda x: int('паста' in x))
-        df['glue'] = df.description.map(lambda x: int('клей' in x))
         df['tempera'] = df.description.map(lambda x: int('темпера' in x))
-        df['glass'] = df.description.map(lambda x: int('стекло' in x))
-        df['forging'] = df.description.map(lambda x: int('ковка' in x))
-        df['plant'] = df.description.map(lambda x: int('цветок' in x or 'плод' in x or 'растение' in x or 'ветвь' in x))
         df['three_formate'] = df.description.map(lambda x: int('лист а3' in x))
         df['spectacle'] = df.description.map(lambda x: int('спектакл' in x))
         df['panorama'] = df.description.map(lambda x: int('панорама' in x))
-        df['pendant'] = df.description.map(lambda x: int('подвеск' in x))
         df['permeation'] = df.description.map(lambda x: int('пронизк' in x))
         df['table'] = df.description.map(lambda x: int('стол' in x))
         df['order'] = df.description.map(lambda x: int('орден' in x))
-        df['bird'] = df.description.map(lambda x: int('птиц' in x))
         df['animal'] = df.description.map(lambda x: int('животны' in x))
         df['weapon'] = df.description.map(lambda x: int('оружие' in x))
         df['have_street'] = df.description.map(lambda x: int('улиц' in x))
-        df['is_perm'] = df.description.map(lambda x: int('перм' in x))
-        df['is_ussr'] = df.description.map(lambda x: int('ссср' in x))
-        df['is_enamel'] = df.description.map(lambda x: int('эмаль' in x))
         df['is_black_and_white'] = df.description.map(lambda x: int('черно-белая' in x or 'черно-белое' in x))
-        df['is_saint_p'] = df.description.map(lambda x: int('санкт-петербург' in x))
-        df['have_photograph'] = df.description.map(lambda x: int('фотограф' in x))
         df['have_architect'] = df.description.map(lambda x: int('архитектор' in x))
         df['have_build'] = df.description.map(lambda x: int('дом' in x \
                                                             or 'школа' in x \
@@ -242,15 +214,12 @@ class DataLoader:
                                                             or 'завод ' in x ))
         df['have_window'] = df.description.map(lambda x: int(' окн' in x))
         df['have_glasses'] = df.description.map(lambda x: int(' очк' in x))
-        df['have_paint'] = df.description.map(lambda x: int('пейзаж' in x))
         df['have_english'] = df.description.map(lambda x: int(not re.search(r'[a-z]', x) is None))
 
         df["street"] = df["description"].map(self.__get_street)
         df["street"] = pd.Categorical(df["street"])
         df["street"].astype('category').cat.codes
         df["street"] = df["street"].cat.codes
-
-        df['diameter'] = df.description.map(self.__get_d_if_monet)
 
         df['material'] = df.description.map(self.__get_m_if_monet)
         df["material"] = pd.Categorical(df["material"])
@@ -267,29 +236,15 @@ class DataLoader:
         df["architect"].astype('category').cat.codes
         df["architect"] = df["architect"].cat.codes
 
-        df['colors'] = df.description.map(self.__get_colors_if_enamel_or_clay)
-        df["colors"] = pd.Categorical(df["colors"])
-        df["colors"].astype('category').cat.codes
-        df["colors"] = df["colors"].cat.codes
-
-        # df['num'] = df.description.map(self.__get_nums)
         df['pkm'] = df.description.map(self.__get_pkm)
         df['tgu'] = df.description.map(self.__get_tgu)
         df['dif'] = df.description.map(self.__get_dif)
         df['din'] = df.description.map(self.__get_din)
-        df['didp'] = df.description.map(self.__get_didp)
         df['dmn'] = df.description.map(self.__get_dmn)
-        df['nm'] = df.description.map(self.__get_nm)
         df['or'] = df.description.map(self.__get_or)
-        df['arus'] = df.description.map(self.__get_arus)
         df['arzhvs'] = df.description.map(self.__get_arzhvs)
         df['izozhgb'] = df.description.map(self.__get_izozhgb)
         df['have_people'] = df.description.map(self.__have_people)
-
-        df['desc'] = df.description.map(lambda x: base64.b64encode(bytes(x, 'utf-8')))
-        df["desc"] = pd.Categorical(df["desc"])
-        df["desc"].astype('category').cat.codes
-        df["desc"] = df["desc"].cat.codes
 
         df['double_penetration'] = df.description.map(lambda x: ','.join(re.findall(r'(?<!а3)\s([а-яё]+,[а-яё]+)+\s', x)))
         df["double_penetration"] = pd.Categorical(df["double_penetration"])

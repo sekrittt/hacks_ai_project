@@ -3,7 +3,7 @@ import webcolors
 from deep_translator import GoogleTranslator
 
 
-img = Image.open('95.png')
+img = Image.open('89.png')
 translator = GoogleTranslator(source="en", target="ru")
 def check_bw(img: Image.Image):
     x, y, width, height = img.getbbox()
