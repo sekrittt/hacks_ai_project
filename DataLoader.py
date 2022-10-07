@@ -1,5 +1,9 @@
+import random
 import re, base64
 import pandas as pd
+
+import seaborn as sns
+import matplotlib.pyplot as plt
 
 class DataLoader:
     __roman_numbers = [
@@ -11,23 +15,6 @@ class DataLoader:
         'xxiv', 'xxv', 'xxvi', 'xxvii', 'xxviii',
         'xxix', 'xxx'
     ]
-
-    def __get_d_if_monet(self, desc:str):
-        if desc.split()[0] == 'монета':
-            f = re.search(r'(штамповка|чеканка).*?(\d+) мм', desc)
-            if not f is None:
-                return f[2]
-        return 0
-
-    def __get_m_if_monet(self, desc:str):
-        if desc.split()[0] == 'монета':
-            f = re.search(r'(пкм|покм)-(\d+)/(\d+) (\w+);', desc)
-            if not f is None:
-                return f[4]
-            f = re.search(r'(пкм|покм)-(\d+) (\w+);', desc)
-            if not f is None:
-                return f[3]
-        return 0
 
     def __get_nums(self, desc: str):
         pkm = self.__get_pkm(desc)
@@ -45,66 +32,76 @@ class DataLoader:
         l = len(desc)
         return int(f'{l}{pkm}{tgu}{dif}{din}{didp}{dmn}{nm}{_or}{arus}{arzhvs}{izozhgb}{osc}')
 
+    def __get_m_if_monet(self, desc:str):
+        if desc.split()[0] == 'монета':
+            f = re.search(r'(пкм|покм)-(\d+)/(\d+) (\w+);', desc)
+            if not f is None:
+                return f[4]
+            f = re.search(r'(пкм|покм)-(\d+) (\w+);', desc)
+            if not f is None:
+                return f[3]
+        return 0
+
     def __get_pkm(self, desc:str):
         f = re.search(r'(?:пкм|покм)-(\d+)/(\d+)', desc)
         if not f is None:
             return round(int(f'{f[1]}{f[2]}'))
         f = re.search(r'(?:пкм|покм)-(\d+)', desc)
         if not f is None:
-            return f[1]
+            return int(f[1])
         return 0
 
     def __get_tgu(self, desc:str):
         f = re.search(r'т/гу-(\d+)', desc)
         if not f is None:
-            return f[1]
+            return int(f[1])
         return 0
 
     def __get_dif(self, desc:str):
         f = re.search(r'ди/ф-(\d+)', desc)
         if not f is None:
-            return f[1]
+            return int(f[1])
         return 0
     def __get_din(self, desc:str):
         f = re.search(r'ди/н-(\d+)', desc)
         if not f is None:
-            return f[1]
+            return int(f[1])
         return 0
     def __get_didp(self, desc:str):
         f = re.search(r'ди/дп-(\d+)', desc)
         if not f is None:
-            return f[1]
+            return int(f[1])
         return 0
 
     def __get_dmn(self, desc:str):
         f = re.search(r'дм/н-(\d+)', desc)
         if not f is None:
-            return f[1]
+            return int(f[1])
         return 0
     def __get_nm(self, desc:str):
         f = re.search(r'н/м-(\d+)', desc)
         if not f is None:
-            return f[1]
+            return int(f[1])
         return 0
     def __get_arus(self, desc:str):
         f = re.search(r'а/рус-(\d+)', desc)
         if not f is None:
-            return f[1]
+            return int(f[1])
         return 0
     def __get_arzhvs(self, desc:str):
         f = re.search(r'а/ржвс-(\d+)', desc)
         if not f is None:
-            return f[1]
+            return int(f[1])
         return 0
     def __get_izozhgb(self, desc:str):
         f = re.search(r'изо/жгб-(\d+)', desc)
         if not f is None:
-            return f[1]
+            return int(f[1])
         return 0
     def __get_or(self, desc:str):
         f = re.search(r'ор-(\d+)', desc)
         if not f is None:
-            return f[1]
+            return int(f[1])
         return 0
 
     def __get_street(self, desc:str):
@@ -176,11 +173,11 @@ class DataLoader:
         df = pd.read_csv(path)
         #print(list(df.values))
         df['description'] = df.description.map(lambda x: re.sub(r'\s+', ' ', x).lower())
-        df["len_description"] = df.description.map(lambda x: 0)
-        df['othersymbolscount'] = df.description.map(lambda x: len(re.findall(r'\W', x)))
+        df["random"] = df.description.map(lambda x: random.choice([0, 1]))
+        # df['othersymbolscount'] = df.description.map(lambda x: len(re.findall(r'\W', x)))
 
         for filt in filters:
-            df[filt["name"]] = df.description.map(lambda x: filt["word"] in x)
+            df[filt["name"]] = df.description.map(lambda x: int(filt["word"] in x))
 
 
         df['have_pokm'] = df.description.map(lambda x: int('покм' in x))
@@ -216,34 +213,34 @@ class DataLoader:
         df['have_glasses'] = df.description.map(lambda x: int(' очк' in x))
         df['have_english'] = df.description.map(lambda x: int(not re.search(r'[a-z]', x) is None))
 
-        df["street"] = df["description"].map(self.__get_street)
-        df["street"] = pd.Categorical(df["street"])
-        df["street"].astype('category').cat.codes
-        df["street"] = df["street"].cat.codes
+        # df["street"] = df["description"].map(self.__get_street)
+        # df["street"] = pd.Categorical(df["street"])
+        # df["street"].astype('category').cat.codes
+        # df["street"] = df["street"].cat.codes
 
-        df['material'] = df.description.map(self.__get_m_if_monet)
-        df["material"] = pd.Categorical(df["material"])
-        df["material"].astype('category').cat.codes
-        df["material"] = df["material"].cat.codes
+        # df['material'] = df.description.map(self.__get_m_if_monet)
+        # df["material"] = pd.Categorical(df["material"])
+        # df["material"].astype('category').cat.codes
+        # df["material"] = df["material"].cat.codes
 
-        df['photograph'] = df.description.map(self.__get_photograph)
-        df["photograph"] = pd.Categorical(df["photograph"])
-        df["photograph"].astype('category').cat.codes
-        df["photograph"] = df["photograph"].cat.codes
+        # df['photograph'] = df.description.map(self.__get_photograph)
+        # df["photograph"] = pd.Categorical(df["photograph"])
+        # df["photograph"].astype('category').cat.codes
+        # df["photograph"] = df["photograph"].cat.codes
 
-        df['architect'] = df.description.map(self.__get_architect)
-        df["architect"] = pd.Categorical(df["architect"])
-        df["architect"].astype('category').cat.codes
-        df["architect"] = df["architect"].cat.codes
+        # df['architect'] = df.description.map(self.__get_architect)
+        # df["architect"] = pd.Categorical(df["architect"])
+        # df["architect"].astype('category').cat.codes
+        # df["architect"] = df["architect"].cat.codes
 
-        df['pkm'] = df.description.map(self.__get_pkm)
-        df['tgu'] = df.description.map(self.__get_tgu)
-        df['dif'] = df.description.map(self.__get_dif)
-        df['din'] = df.description.map(self.__get_din)
-        df['dmn'] = df.description.map(self.__get_dmn)
-        df['or'] = df.description.map(self.__get_or)
-        df['arzhvs'] = df.description.map(self.__get_arzhvs)
-        df['izozhgb'] = df.description.map(self.__get_izozhgb)
+        # df['pkm'] = df.description.map(self.__get_pkm)
+        # df['tgu'] = df.description.map(self.__get_tgu)
+        # df['dif'] = df.description.map(self.__get_dif)
+        # df['din'] = df.description.map(self.__get_din)
+        # df['dmn'] = df.description.map(self.__get_dmn)
+        # df['or'] = df.description.map(self.__get_or)
+        # df['arzhvs'] = df.description.map(self.__get_arzhvs)
+        # df['izozhgb'] = df.description.map(self.__get_izozhgb)
         df['have_people'] = df.description.map(self.__have_people)
 
         df['double_penetration'] = df.description.map(lambda x: ','.join(re.findall(r'(?<!а3)\s([а-яё]+,[а-яё]+)+\s', x)))
@@ -252,13 +249,13 @@ class DataLoader:
         df["double_penetration"] = df["double_penetration"].cat.codes
 
         ids = list(df.get('id'))
+        # print(df)
 
         # count_pkm = len(df.get('num'))
         # count_s_pkm = len(set(df.get('num')))
         # count_z_pkm = list(df.get('num')).count(0)
 
         # print(f'{count_pkm=}, {count_s_pkm=}, {count_z_pkm=}')
-
 
         X = df.drop(drop_fields, axis = 1)
         y = df.get('object_img')

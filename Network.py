@@ -1,118 +1,32 @@
 import pandas as pd
 from sklearn.model_selection import train_test_split
-from sklearn.ensemble import RandomForestClassifier
 from sklearn.linear_model import LinearRegression
 from sklearn.metrics import r2_score
 import numpy as np
-import os, pickle, csv, sys, datetime, re
+import os, pickle, csv, datetime, re, math
 from DataLoader import DataLoader
 from get_filters import get_filters
 
-colors = [
-	'цвет морской волны',
-	'аквамарин',
-	'лазурный',
-	'бежевый',
-	'бисквитный',
-	'черный',
-	'синий',
-	'сине-фиолетовый',
-	'коричневый',
-	'малиновый',
-	'голубой',
-	'темно-синий',
-	'темно-голубой',
-	'темно-золотой',
-	'темно-серый',
-	'темно-серый',
-	'темно-зеленый',
-	'темный хаки',
-	'темно-пурпурный',
-	'темно-оливковый',
-	'темно-оранжевый',
-	'темно-зеленый',
-	'темно-красный',
-	'темно-лососевый',
-	'темно-зеленый',
-	'темно-зеленый',
-	'темно-зеленый',
-	'темно-серый',
-	'темно-сланцевый',
-	'темно-бирюзовый',
-	'темно-фиолетовый',
-	'темно-розовый',
-	'темно-синий',
-	'тускло-серый',
-	'тусклый',
-	'фуксия',
-	'золото',
-	'золотарник',
-	'серый',
-	'серый',
-	'зеленый',
-	'зелено-желтый',
-	'медвяная роса',
-	'ярко-розовый',
-	'индийский красный',
-	'индиго',
-	'слоновая кость',
-	'хаки',
-	'лаванда',
-	'лимонный шифон',
-	'светло-голубой',
-	'светло-коралловый',
-	'светло-голубой',
-	'светло-золотой',
-	'светло-серый',
-	'светло-серый',
-	'светло-зеленый',
-	'светло-розовый',
-	'светло-лососевый',
-	'светло-зеленый',
-	'светло-голубой',
-	'светло-серый',
-	'светло-серый',
-	'светло-стальной',
-	'светло-желтый',
-	'лайм',
-	'лимонно-зеленый',
-	'льняной',
-	'пурпурный',
-	'бордовый',
-	'средне-аквамарин',
-	'средне-синий',
-	'бледно-зеленый',
-	'пале-бирюзовый',
-	'розовый',
-	'пурпурный',
-	'красный',
-	'розово-коричневый',
-	'королевский синий',
-	'песочно-коричневый',
-	'морская зелень',
-	'морская ракушка',
-	'серебристый',
-	'небесно-голубой',
-	'весенне-зеленый',
-	'томатный',
-	'бирюзовый',
-	'фиолетовый',
-	'пшеничный',
-	'белый',
-	'дымчатый',
-	'желтый',
-	'желто-зеленый'
-]
-
-
-
 class Network:
 	def __init__(self):
-		self.reg = LinearRegression(normalize=True)
+		self.reg = LinearRegression()
 		self.last_accuracy = '0%'
 
+	def __sigmoid(self, x):
+		return 1/(1+math.exp(-x))
+
 	def train(self, x, y):
-		self.reg.fit(x, y)
+		xa = []
+		for v in x.values:
+			b = np.array(v)
+			# b1 = np.array(list(map(lambda x: x > 1, v)))
+			# xa.extend(b1)
+			xa.append(b.dot(2**np.arange(b.size)[::-1]) or 1)
+		xn = np.array(np.array(xa))
+		yn = np.array(np.array(y.values))
+		weights = list(map(self.__sigmoid, list(yn/xn)))
+
+		self.reg.fit(x, y, sample_weight=weights)
 
 	def save(self, path='network.sav'):
 		with open(path, 'wb') as f:
@@ -127,16 +41,15 @@ class Network:
 
 	def test(self, x, y=[]):
 		pred = self.reg.predict(x)
-		pred = list(map(lambda i: abs(int(i)), pred))
 
 		if len(y) > 0:
 			self.last_accuracy = f'{(r2_score(y, pred)*100):.3f}%'
-			print(f'Accuracy: {self.last_accuracy}')
+			print(f'R^2 score: {self.last_accuracy}')
 		return pred
 
 
 if __name__ == "__main__":
-	os.system('clear')
+	os.system('cls||clear')
 
 	net = Network()
 	loader = DataLoader()
@@ -153,14 +66,13 @@ if __name__ == "__main__":
 	# if os.path.exists('network.sav'):
 	# 	net.load()
 	# else:
-	os.system('clear')
+	os.system('cls||clear')
 	net.train(X, y)
 
 	# print(X_test.idxmin())
 	# print(list(y.index))
 
 	# net.save()
-
 
 	net.test(X_test, y_test)
 

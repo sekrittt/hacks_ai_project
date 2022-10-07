@@ -57,11 +57,11 @@ def main():
         _img = list(y_test.head(1+i))[i]
         desc = data.get(str(y_test.index[i]))
         pred = net.test(X_test, y_test)
-        img_src = pred[i]
+        img_src = round(pred[i])
 
         c = 0
         for g, img in enumerate(pred):
-            if img in list(y_test):
+            if round(img) in list(y_test):
                 print(f'{g=}, {img=}')
                 c += 1
 
@@ -78,11 +78,13 @@ def main():
 
         filters_1 = get_filters('train.csv')
         filters_2 = get_filters('data.csv')
-        filters = []
+        filters = [*filters_1, *filters_2]
 
-        for filt in filters_1:
-            if filt in filters_2:
-                filters.append(filt)
+        # for filt in filters_1:
+        #     if filt in filters_2:
+        #         filters.append(filt)
+
+        pywebio.session.run_js(f"""console.log({str(json.dumps(filters_1))}, {str(json.dumps(filters_2))})""")
 
         X, y, y_indexes = loader.load_data('train.csv', ["description","object_img", 'id'], filters)
         X_train, X_test, y_train, y_test = net.tts(X, y_indexes, test_size=0.3, random_state=42, shuffle=False)
@@ -90,7 +92,6 @@ def main():
         net.train(X, y)
 
         # print(dict(y_test))
-
 
         _img, img_src, desc, count, percent = get_images(X_test, y_test)
 

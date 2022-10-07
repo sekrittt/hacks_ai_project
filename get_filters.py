@@ -18,7 +18,8 @@ def get_filters(path:str):
             words_lists.append(line)
         text = dict(Counter((' '.join(words_lists)).lower().split(' ')))
         for key, value in text.items():
-            if value > 80 and len(key) > 3 and not key.isdigit():
+            # if value > 50 and len(key) > 3 and not key.isdigit():
+            if value > 50:
                 words.append(key)
         en_words_1 = list(map(lambda x: re.sub(r'\s', '_', x).lower(), translator.translate(', '.join(words[:(len(words)//4)])).split(', ')))
         en_words_2 = list(map(lambda x: re.sub(r'\s', '_', x).lower(), translator.translate(', '.join(words[(len(words)//4):(len(words)//2)])).split(', ')))
