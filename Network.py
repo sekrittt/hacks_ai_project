@@ -6,6 +6,7 @@ from sklearn.metrics import r2_score
 import numpy as np
 import os, pickle, csv, sys, datetime, re
 from DataLoader import DataLoader
+from get_filters import get_filters
 
 colors = [
 	'цвет морской волны',
@@ -107,7 +108,7 @@ colors = [
 
 class Network:
 	def __init__(self):
-		self.reg = LinearRegression()
+		self.reg = LinearRegression(normalize=True)
 		self.last_accuracy = '0%'
 
 	def train(self, x, y):
@@ -135,17 +136,24 @@ class Network:
 
 
 if __name__ == "__main__":
-	os.system('cls||clear')
+	os.system('clear')
 
 	net = Network()
 	loader = DataLoader()
+	filters_1 = get_filters('train.csv')
+	filters_2 = get_filters('data.csv')
+	filters = []
 
-	X, y = loader.load_data('train.csv', ["description","object_img",'id'])
+	for filt in filters_1:
+		if filt in filters_2:
+			filters.append(filt)
+	X, y, y_indexes = loader.load_data('train.csv', ["description","object_img",'id'], filters)
 	X_train, X_test, y_train, y_test = net.tts(X, y, test_size=0.3, random_state=42, shuffle=False)
 
 	# if os.path.exists('network.sav'):
 	# 	net.load()
 	# else:
+	os.system('clear')
 	net.train(X, y)
 
 	# print(X_test.idxmin())
@@ -153,14 +161,10 @@ if __name__ == "__main__":
 
 	# net.save()
 
-	try:
-		net.test(X_test, y_test)
-	except Exception as e:
-		net.train(X, y)
-		net.save()
-		net.test(X_test, y_test)
 
-	test_X, test_y = loader.load_data('data.csv', ["description",'id'])
+	net.test(X_test, y_test)
+
+	test_X, test_y, test_y_indexes = loader.load_data('data.csv', ["description",'id'], filters)
 
 	p = net.test(test_X)
 	# print(p)

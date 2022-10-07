@@ -176,7 +176,7 @@ class DataLoader:
         df = pd.read_csv(path)
         #print(list(df.values))
         df['description'] = df.description.map(lambda x: re.sub(r'\s+', ' ', x).lower())
-        df["len_description"] = df.description.map(len)
+        df["len_description"] = df.description.map(lambda x: 0)
         df['othersymbolscount'] = df.description.map(lambda x: len(re.findall(r'\W', x)))
 
         for filt in filters:

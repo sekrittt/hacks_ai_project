@@ -75,9 +75,16 @@ def main():
 
     def b():
         global history
-        filters = get_filters()
 
-        X, y, y_indexes = loader.load_data('train.csv', ["description","object_img", 'id'], get_filters())
+        filters_1 = get_filters('train.csv')
+        filters_2 = get_filters('data.csv')
+        filters = []
+
+        for filt in filters_1:
+            if filt in filters_2:
+                filters.append(filt)
+
+        X, y, y_indexes = loader.load_data('train.csv', ["description","object_img", 'id'], filters)
         X_train, X_test, y_train, y_test = net.tts(X, y_indexes, test_size=0.3, random_state=42, shuffle=False)
 
         net.train(X, y)
