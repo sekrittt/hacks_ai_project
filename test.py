@@ -10,11 +10,11 @@ loader = DataLoader()
 
 filters_1 = get_filters('train.csv')
 filters_2 = get_filters('data.csv')
-filters = []
+filters = list(set([*filters_1, *filters_2]))
 
-for filt in filters_1:
-    if filt in filters_2:
-        filters.append(filt)
+# for filt in filters_1:
+#     if filt in filters_2:
+#         filters.append(filt)
 
 x, y, y_indexes = loader.load_data('train.csv', ["description","object_img",'id'], filters)
 

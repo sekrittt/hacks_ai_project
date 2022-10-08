@@ -18,19 +18,23 @@ def get_filters(path:str):
             words_lists.append(line)
         text = dict(Counter((' '.join(words_lists)).lower().split(' ')))
         for key, value in text.items():
-            if value > 19 and len(key) > 2:
+            if value > 50 and len(key) > 3:
             # if value > 50:
                 words.append(key)
-        en_words_1 = list(map(lambda x: re.sub(r'\s', '_', x).lower(), translator.translate(', '.join(words[:(len(words)//4)])).split(', ')))
-        en_words_2 = list(map(lambda x: re.sub(r'\s', '_', x).lower(), translator.translate(', '.join(words[(len(words)//4):(len(words)//2)])).split(', ')))
-        en_words_3 = list(map(lambda x: re.sub(r'\s', '_', x).lower(), translator.translate(', '.join(words[(len(words)//2):((len(words)//4)*3)])).split(', ')))
-        en_words_4 = list(map(lambda x: re.sub(r'\s', '_', x).lower(), translator.translate(', '.join(words[((len(words)//4)*3):])).split(', ')))
-        en_words = [*en_words_1, *en_words_2, *en_words_3, *en_words_4]
-        for w, ew in zip(words, en_words):
-            filters.append({
-                "name": ew,
-                "word": w
-            })
+        # en_words_1 = list(map(lambda x: re.sub(r'\s', '_', x).lower(), translator.translate(', '.join(words[:(len(words)//4)])).split(', ')))
+        # en_words_2 = list(map(lambda x: re.sub(r'\s', '_', x).lower(), translator.translate(', '.join(words[(len(words)//4):(len(words)//2)])).split(', ')))
+        # en_words_3 = list(map(lambda x: re.sub(r'\s', '_', x).lower(), translator.translate(', '.join(words[(len(words)//2):((len(words)//4)*3)])).split(', ')))
+        # en_words_4 = list(map(lambda x: re.sub(r'\s', '_', x).lower(), translator.translate(', '.join(words[((len(words)//4)*3):])).split(', ')))
+        # en_words = [*en_words_1, *en_words_2, *en_words_3, *en_words_4]
+        # for w, ew in zip(words, en_words):
+        #     filters.append({
+        #         "name": ew,
+        #         "word": w
+        #     })
+        for n, w in enumerate(words):
+            if n > 300:
+                break
+            filters.append(w)
         return filters
 
 if __name__ == "__main__":

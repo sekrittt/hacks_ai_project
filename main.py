@@ -86,7 +86,7 @@ def main():
 
         pywebio.session.run_js(f"""console.log({str(json.dumps(filters_1))}, {str(json.dumps(filters_2))})""")
 
-        X, y, y_indexes = loader.load_data('train.csv', ["description","object_img", 'id'], filters)
+        X, y, y_indexes = loader.load_data('train.csv', ["description","object_img", 'id'], filters_1)
         X_train, X_test, y_train, y_test = net.tts(X, y_indexes, test_size=0.3, random_state=42, shuffle=False)
 
         net.train(X, y)

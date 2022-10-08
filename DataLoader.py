@@ -169,16 +169,16 @@ class DataLoader:
     def load_data(self, path: str, drop_fields:list, filters: list[dict]):
         df = pd.read_csv(path)
         #print(list(df.values))
-        df['description'] = df.description.map(lambda x: re.sub(r'\s+', ' ', x).lower())
+        df['description'] = df.description.map(lambda x: x.lower())
         df["random"] = df.description.map(lambda x: int(len(x) > 200))
         # df["len_desc"] = df.description.map(lambda x: len(x))
 
-        for i, filt in enumerate(filters):
-            df[f"param_{i}"] = df.description.map(lambda x: int(filt["word"] in x))
+        for i, word in enumerate(filters):
+            df[f"param_{i}"] = df.description.map(lambda x: int(word in x))
 
 
-        # df['have_pokm'] = df.description.map(lambda x: int('покм' in x))
-        # df['have_pkm'] = df.description.map(lambda x: int('пкм' in x))
+        df['have_pokm'] = df.description.map(lambda x: int('покм' in x))
+        df['have_pkm'] = df.description.map(lambda x: int('пкм' in x))
         df['stamping_or_coinage'] = df.description.map(lambda x: int('штамповка' in x or 'чеканка' in x))
         df['paperboard'] = df.description.map(lambda x: int('картон' in x))
         df['tree'] = df.description.map(lambda x: int('дерев' in x))
@@ -230,12 +230,12 @@ class DataLoader:
         # df["architect"].astype('category').cat.codes
         # df["architect"] = df["architect"].cat.codes
 
-        df['pkm'] = df.description.map(self.__get_pkm)
-        df['tgu'] = df.description.map(self.__get_tgu)
+        # df['pkm'] = df.description.map(self.__get_pkm)
+        # df['tgu'] = df.description.map(self.__get_tgu)
         # df['dif'] = df.description.map(self.__get_dif)
         # df['din'] = df.description.map(self.__get_din)
-        df['dmn'] = df.description.map(self.__get_dmn)
-        df['or'] = df.description.map(self.__get_or)
+        # df['dmn'] = df.description.map(self.__get_dmn)
+        # df['or'] = df.description.map(self.__get_or)
         # df['arzhvs'] = df.description.map(self.__get_arzhvs)
         # df['izozhgb'] = df.description.map(self.__get_izozhgb)
         df['have_people'] = df.description.map(self.__have_people)
