@@ -50,14 +50,14 @@ def get_filters(path:str):
         reader = csv.reader(f, delimiter=',', quotechar='"')
         lines = list(reader)[1:]
         for i, row in enumerate(lines):
-            line = re.sub(r'\s+', ' ', re.sub(r'[^a-zA-Zа-яёА-ЯЁ]', ' ', row[1])).strip()
+            line = re.sub(r'\s+', ' ', re.sub(r'[^a-zA-Zа-яёА-ЯЁ\d]', ' ', row[1])).strip()
             words_lists.append(line)
         text = dict(Counter((' '.join(words_lists)).lower().split(' ')))
         for key, value in text.items():
             if value > 30 and len(key) >= 3:
                 words.append(key)
         for n, w in enumerate(words):
-            if n > 300:
+            if n > 500:
                 break
             r = word_process(w)
             if len(r) >= 3:
@@ -65,10 +65,10 @@ def get_filters(path:str):
 
         text_2 = dict(Counter(list((re.sub(r'\s+', '', ''.join(words_lists))).lower())))
         for key, value in text_2.items():
-            if value > 30:
+            if value > 50 and value < 10000:
                 symbols.append(key)
         for n, s in enumerate(symbols):
-            if n > 300:
+            if n > 3000:
                 break
             filters.append(s)
         return sorted(filters)

@@ -46,7 +46,7 @@ class Network:
 		return train_test_split(x, y, *args, **kwargs)
 
 	def test(self, x, y=[]):
-		pred = self.reg.predict(x)
+		pred = list(map(lambda x: abs(x), self.reg.predict(x)))
 
 		if len(y) > 0:
 			self.last_accuracy = f'{(r2_score(y, pred)*100):.3f}%'

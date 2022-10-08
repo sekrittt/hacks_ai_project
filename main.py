@@ -54,7 +54,11 @@ def main():
 
     filters_1 = get_filters('train.csv')
     filters_2 = get_filters('data.csv')
-    filters = list(set([*filters_1, *filters_2]))
+    # filters = list(set([*filters_1, *filters_2]))
+    filters = []
+    for filt in filters_1:
+            if filt in filters_2:
+                filters.append(filt)
 
 
     def get_images(X_test, y_test, i = 0):
@@ -101,10 +105,6 @@ def main():
 
     def b():
         global history
-
-        # for filt in filters_1:
-        #     if filt in filters_2:
-        #         filters.append(filt)
 
         pywebio.session.run_js(f"""console.log({str(json.dumps(filters))})""")
 
