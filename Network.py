@@ -18,10 +18,15 @@ class Network:
 	def train(self, x, y):
 		xa = []
 		for v in x.values:
-			b = np.array(v)
-			# b1 = np.array(list(map(lambda x: x > 1, v)))
-			# xa.extend(b1)
-			xa.append(b.dot(2**np.arange(b.size)[::-1]) or 1)
+			# b = np.array(v)
+			b = 0
+			b1 = list(filter(lambda x: x <= 1, v))
+			b2 = list(filter(lambda x: x > 1, v))
+			# # b1 = b1.dot(2**np.arange(b1.size)[::-1]) or 1
+			for n in b2:
+				b += n
+			xa.append(b1.count(1) + b)
+			# xa.append(b.dot(2**np.arange(b.size)[::-1]) or 1)
 		xn = np.array(np.array(xa))
 		yn = np.array(np.array(y.values))
 		weights = list(map(self.__sigmoid, list(yn/xn)))
@@ -55,16 +60,16 @@ if __name__ == "__main__":
 	loader = DataLoader()
 	filters_1 = get_filters('train.csv')
 	filters_2 = get_filters('data.csv')
-	filters = []
+	filters = [*filters_1, *filters_2]
 
-	for filt in filters_1:
-		if filt in filters_2:
-			filters.append(filt)
+	# for filt in filters_1:
+	# 	if filt in filters_2:
+	# 		filters.append(filt)
 	X, y, y_indexes = loader.load_data('train.csv', ["description","object_img",'id'], filters)
 	X_train, X_test, y_train, y_test = net.tts(X, y, test_size=0.3, random_state=42, shuffle=False)
 
 	# if os.path.exists('network.sav'):
-	# 	net.load()
+	# net.load()
 	# else:
 	os.system('cls||clear')
 	net.train(X, y)
@@ -74,7 +79,7 @@ if __name__ == "__main__":
 
 	# net.save()
 
-	net.test(X_test, y_test)
+	# net.test(X_test, y_test)
 
 	test_X, test_y, test_y_indexes = loader.load_data('data.csv', ["description",'id'], filters)
 
@@ -94,5 +99,5 @@ if __name__ == "__main__":
 	with open(f'solution_{d}.csv', 'w', encoding='utf-8') as f:
 		f.write('id,object_img\n')
 		for key, value in list(data.items()):
-			f.write(f'{key},{value}\n')
+			f.write(f'{key},{round(value)}\n')
 	# print(data)

@@ -2,9 +2,6 @@ import random
 import re, base64
 import pandas as pd
 
-import seaborn as sns
-import matplotlib.pyplot as plt
-
 class DataLoader:
     __roman_numbers = [
         'i', 'ii', 'iii',
@@ -173,15 +170,15 @@ class DataLoader:
         df = pd.read_csv(path)
         #print(list(df.values))
         df['description'] = df.description.map(lambda x: re.sub(r'\s+', ' ', x).lower())
-        df["random"] = df.description.map(lambda x: random.choice([0, 1]))
-        # df['othersymbolscount'] = df.description.map(lambda x: len(re.findall(r'\W', x)))
+        df["random"] = df.description.map(lambda x: int(len(x) > 200))
+        # df["len_desc"] = df.description.map(lambda x: len(x))
 
-        for filt in filters:
-            df[filt["name"]] = df.description.map(lambda x: int(filt["word"] in x))
+        for i, filt in enumerate(filters):
+            df[f"param_{i}"] = df.description.map(lambda x: int(filt["word"] in x))
 
 
-        df['have_pokm'] = df.description.map(lambda x: int('покм' in x))
-        df['have_pkm'] = df.description.map(lambda x: int('пкм' in x))
+        # df['have_pokm'] = df.description.map(lambda x: int('покм' in x))
+        # df['have_pkm'] = df.description.map(lambda x: int('пкм' in x))
         df['stamping_or_coinage'] = df.description.map(lambda x: int('штамповка' in x or 'чеканка' in x))
         df['paperboard'] = df.description.map(lambda x: int('картон' in x))
         df['tree'] = df.description.map(lambda x: int('дерев' in x))
@@ -233,20 +230,20 @@ class DataLoader:
         # df["architect"].astype('category').cat.codes
         # df["architect"] = df["architect"].cat.codes
 
-        # df['pkm'] = df.description.map(self.__get_pkm)
-        # df['tgu'] = df.description.map(self.__get_tgu)
+        df['pkm'] = df.description.map(self.__get_pkm)
+        df['tgu'] = df.description.map(self.__get_tgu)
         # df['dif'] = df.description.map(self.__get_dif)
         # df['din'] = df.description.map(self.__get_din)
-        # df['dmn'] = df.description.map(self.__get_dmn)
-        # df['or'] = df.description.map(self.__get_or)
+        df['dmn'] = df.description.map(self.__get_dmn)
+        df['or'] = df.description.map(self.__get_or)
         # df['arzhvs'] = df.description.map(self.__get_arzhvs)
         # df['izozhgb'] = df.description.map(self.__get_izozhgb)
         df['have_people'] = df.description.map(self.__have_people)
 
-        df['double_penetration'] = df.description.map(lambda x: ','.join(re.findall(r'(?<!а3)\s([а-яё]+,[а-яё]+)+\s', x)))
-        df["double_penetration"] = pd.Categorical(df["double_penetration"])
-        df["double_penetration"].astype('category').cat.codes
-        df["double_penetration"] = df["double_penetration"].cat.codes
+        # df['double_penetration'] = df.description.map(lambda x: ','.join(re.findall(r'(?<!а3)\s([а-яё]+,[а-яё]+)+\s', x)))
+        # df["double_penetration"] = pd.Categorical(df["double_penetration"])
+        # df["double_penetration"].astype('category').cat.codes
+        # df["double_penetration"] = df["double_penetration"].cat.codes
 
         ids = list(df.get('id'))
         # print(df)

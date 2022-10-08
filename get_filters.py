@@ -14,12 +14,12 @@ def get_filters(path:str):
         reader = csv.reader(f, delimiter=',', quotechar='"')
         lines = list(reader)[1:]
         for i, row in enumerate(lines):
-            line = re.sub(r'\s+', ' ', re.sub(r'\W', ' ', row[1])).strip()
+            line = re.sub(r'\s+', ' ', re.sub(r'[^a-zA-Zа-яёА-ЯЁ]', ' ', row[1])).strip()
             words_lists.append(line)
         text = dict(Counter((' '.join(words_lists)).lower().split(' ')))
         for key, value in text.items():
-            # if value > 50 and len(key) > 3 and not key.isdigit():
-            if value > 50:
+            if value > 19 and len(key) > 2:
+            # if value > 50:
                 words.append(key)
         en_words_1 = list(map(lambda x: re.sub(r'\s', '_', x).lower(), translator.translate(', '.join(words[:(len(words)//4)])).split(', ')))
         en_words_2 = list(map(lambda x: re.sub(r'\s', '_', x).lower(), translator.translate(', '.join(words[(len(words)//4):(len(words)//2)])).split(', ')))

@@ -61,8 +61,8 @@ def main():
 
         c = 0
         for g, img in enumerate(pred):
-            if round(img) in list(y_test):
-                print(f'{g=}, {img=}')
+            if round(img) == list(y_test)[g]:
+                print(f'{list(y_test)[g]=}, {round(img)=}')
                 c += 1
 
         print(f'Count: {c}, {((c/len(y_test))*100):.3f}%')
