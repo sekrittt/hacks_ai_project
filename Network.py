@@ -3,7 +3,7 @@ from sklearn.model_selection import train_test_split
 from sklearn.linear_model import LinearRegression
 from sklearn.metrics import r2_score
 import numpy as np
-import os, pickle, csv, datetime, re, math
+import os, pickle, csv, datetime, re, math, time
 from DataLoader import DataLoader
 from get_filters import get_filters
 
@@ -16,23 +16,23 @@ class Network:
 		return 1/(1+math.exp(-x))
 
 	def train(self, x, y):
+		start = time.time()
 		# xa = []
 		# for v in x.values:
-		# 	# b = np.array(v)
 		# 	b = 0
 		# 	b1 = list(filter(lambda x: x <= 1, v))
 		# 	b2 = list(filter(lambda x: x > 1, v))
-		# 	# # b1 = b1.dot(2**np.arange(b1.size)[::-1]) or 1
 		# 	for n in b2:
 		# 		b += n
 		# 	xa.append(b1.count(1) + b)
-		# 	# xa.append(b.dot(2**np.arange(b.size)[::-1]) or 1)
 		# xn = np.array(np.array(xa))
 		# yn = np.array(np.array(y.values))
 		# weights = list(map(self.__sigmoid, list(yn/xn)))
 
 		# self.reg.fit(x, y, sample_weight=weights)
 		self.reg.fit(x,y)
+		# self.reg.fit(x,y)
+		print(f'Time for training: {time.time() - start}')
 
 	def save(self, path='network.sav'):
 		with open(path, 'wb') as f:

@@ -1,77 +1,89 @@
-import csv, re
+import csv, re, pymorphy2, itertools
 from collections import Counter
-from pyparsing import StringEnd, oneOf, FollowedBy, Optional, ZeroOrMore, SkipTo
-from pymystem3 import Mystem
-import pymorphy2
 
 morphy = pymorphy2.MorphAnalyzer(lang='ru')
 
+roman_numbers = [
+    'i', 'ii', 'iii',
+    'iv', 'v', 'vi', 'vii', 'viii',
+    'ix', 'x', 'xi', 'xii', 'xiii',
+    'xiv', 'xv', 'xvi', 'xvii', 'xviii',
+    'xix', 'xx', 'xxi', 'xxii', ' xxiii',
+    'xxiv', 'xxv', 'xxvi', 'xxvii', 'xxviii',
+    'xxix', 'xxx'
+]
+
+def convert_roman_if_have(desc:str):
+    global roman_numbers
+    for i, num in enumerate(roman_numbers):
+        desc = re.sub(fr'\s({num})\s', f' {i+1} ', desc)
+    return desc
+
 def get_crossing(str1, strs):
     res = ''
-    for s in str1:
+    for i, s in enumerate(str1):
         a = True
         for s1 in strs:
-
-            if not s in s1:
+            if i >= len(s1) or not s == s1[i]:
                 a = False
         if a:
             res += s
         else:
-            break
+            return res
     return res
 
 def word_process(s: str):
     res = morphy.parse(s)[0]
-    strs = list(set(map(lambda x: x.word, res.lexeme)))
-    return get_crossing(s, strs)
+    l = list(map(lambda x: x.word, res.lexeme))
+    l.append(get_crossing(s, l))
+    return l
 
-
-def get_parser():
-    endOfString = StringEnd()
-    prefix = oneOf("под не")
-    suffix = oneOf("ы а ий ей ой") + FollowedBy(endOfString)
-
-    word = (ZeroOrMore(prefix)("prefixes") +
-            SkipTo(suffix | endOfString)("root") +
-            Optional(suffix)("suffix"))
-    return word
+def get_combs(s:str, l: int):
+    global morphy
+    for i in itertools.combinations_with_replacement(s, l):
+        for j in range(l):
+            out = ''.join(i)[:j]
+            if not out.isdigit():
+                if not morphy.word_is_known(out):
+                    continue
+            yield out
 
 def get_filters(path:str):
-    global get_parser, get_crossing, word_process
+    global word_process
     filters = []
     words_lists = []
+    words_lists_2 = []
     text = ''
 
     words = []
     symbols = []
-    m = Mystem()
 
     with open(path, 'r', encoding='utf-8') as f:
         reader = csv.reader(f, delimiter=',', quotechar='"')
         lines = list(reader)[1:]
         for i, row in enumerate(lines):
-            line = re.sub(r'\s+', ' ', re.sub(r'[^a-zA-Zа-яёА-ЯЁ\d]', ' ', row[1])).strip()
-            words_lists.append(line)
+            words_lists.append(re.sub(r'\s+', ' ', re.sub(r'[^a-zA-Zа-яёА-ЯЁ\d]', ' ', row[1])).strip())
+            words_lists_2.append(re.sub(r'\s+', ' ', row[1]).strip())
         text = dict(Counter((' '.join(words_lists)).lower().split(' ')))
         for key, value in text.items():
             if value > 30 and len(key) >= 3:
                 words.append(key)
         for n, w in enumerate(words):
-            if n > 500:
-                break
-            r = word_process(w)
-            if len(r) >= 3:
-                filters.append(r)
+            # if n > 500:
+            #     break
+            filters.extend(word_process(w))
 
         text_2 = dict(Counter(list((re.sub(r'\s+', '', ''.join(words_lists))).lower())))
         for key, value in text_2.items():
-            if value > 50 and value < 10000:
+            if value > 100 and value < 10000:
                 symbols.append(key)
         for n, s in enumerate(symbols):
-            if n > 3000:
-                break
+            # if n > 3000:
+            #     break
             filters.append(s)
-        return sorted(filters)
-
-if __name__ == "__main__":
-    print(get_filters())
+        t = (' '.join(words_lists)).lower()
+        for i in get_combs('0123456789', 5):
+            b = t.count(i)
+            if b > 30:
+                filters.append(i)
+        return list(filter(lambda x: len(x.strip()) > 0, sorted(filters)))

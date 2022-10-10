@@ -4,14 +4,17 @@ from Network import Network
 from PIL import Image
 from DataLoader import DataLoader
 from get_filters import get_filters
+import warnings
+warnings.filterwarnings("ignore")
+
 
 any_js = """
-        WebIO._state.CurrentSession.ws.addEventListener('close', () => {
-            console.log('Test!')
-            setTimeout(() => {
-                window.location.reload()
-            }, 100)
-        })
+    WebIO._state.CurrentSession.ws.addEventListener('close', () => {
+        console.log('Test!')
+        setTimeout(() => {
+            window.location.reload()
+        }, 15000)
+    })
 """
 
 history: list[dict[str,str]] = []
@@ -19,106 +22,85 @@ history: list[dict[str,str]] = []
 with open('history.json', 'r+', encoding='utf-8') as h:
     history = json.loads(h.read())
 
-def main():
-    global any_js
-    pywebio.session.run_js(any_js)
+data = {}
+
+with open('train.csv', 'r', encoding='utf-8') as f:
+    reader = csv.reader(f, delimiter=',', quotechar='"')
+    for row in reader:
+        data[row[0]] = row[1]
+net = Network()
+loader = DataLoader()
+
+filters_1 = get_filters('train.csv')
+filters_2 = get_filters('data.csv')
+# filters = list(set([*filters_1, *filters_2]))
+filters = []
+for filt in filters_1:
+    if filt in filters_2:
+        filters.append(filt)
+
+filters = list(set(filters))
+
+
+def get_images(X_test, y_test, i = 0):
+    global data
+    _img = list(y_test.head(1+i))[i]
+    desc = data.get(str(y_test.index[i]))
+    pred = net.test(X_test, y_test)
+    img_src = round(pred[i])
+
+    c = 0
+    for g, img in enumerate(pred):
+        if round(img) == list(y_test)[g]:
+            c += 1
+
+    print(f'Count: {c}, {((c/len(y_test))*100):.3f}%')
+
+    if _img == img_src and i+2 <= len(y_test):
+        print(f'{_img=} == {img_src=}')
+        return get_images(X_test, y_test, i+1)
+    return _img, img_src, desc, c, ((c/len(y_test))*100)
+
+def make_solutions():
+    global net, loader
+    test_X, test_y, test_y_indexes = loader.load_data('data.csv', ["description",'id'], filters)
+    p = net.test(test_X)
     data = {}
-
-    # with open('data.csv', 'r', encoding='utf-8') as f:
-    #     reader = csv.reader(f, delimiter=',', quotechar='"')
-    #     for row in reader:
-    #         data[row[0]] = row[1]
-    # def b():
-    #     q: str = pywebio.input.input(placeholder="Введите запрос...", required=True)
-
-    #     with pywebio.output.use_scope('answer_scope', clear=True):
-    #         for a in process.extract(q, list(data.values()), limit=10000):
-    #             if a[1] > 50:
-    #                 acc = 0
-    #                 target_acc = len(q.split(' '))
-    #                 print(q.split(' '))
-    #                 for word in q.split(' '):
-    #                     if word.lower() in a[0].lower():
-    #                         acc += 1
-    #                 if acc == target_acc:
-    #                     pywebio.output.put_text(a[0])
-    #     time.sleep(0.1)
-    #     b()
-    # b()
-    with open('train.csv', 'r', encoding='utf-8') as f:
+    with open('data.csv', 'r', encoding='utf-8') as f:
         reader = csv.reader(f, delimiter=',', quotechar='"')
-        for row in reader:
-            data[row[0]] = row[1]
-    net = Network()
-    loader = DataLoader()
+        for i, row in enumerate(reader, start=-1):
+            if i == -1:
+                continue
+            if i < len(p):
+                data[row[0]] = p[i]
+            else:
+                break
+    d = re.sub(r'[\-\:\.]', '_', re.sub(r'\s', 'T', str(datetime.datetime.today())))
+    with open(f'solution_{d}.csv', 'w', encoding='utf-8') as f:
+        f.write('id,object_img\n')
+        for key, value in list(data.items()):
+            f.write(f'{key},{round(value)}\n')
+    pywebio.output.toast('Решение сохранено!', color='success')
 
-    filters_1 = get_filters('train.csv')
-    filters_2 = get_filters('data.csv')
-    # filters = list(set([*filters_1, *filters_2]))
-    filters = []
-    for filt in filters_1:
-            if filt in filters_2:
-                filters.append(filt)
+os.system('cls||clear')
+print('Loading data...')
+X, y, y_indexes = loader.load_data('train.csv', ["description","object_img", 'id'], filters)
+X_train, X_test, y_train, y_test = net.tts(X, y_indexes, test_size=0.3, random_state=42, shuffle=False)
+print('Loading data end!')
 
+print('Training...')
+net.train(X, y)
+print('Training end!')
 
-    def get_images(X_test, y_test, i = 0):
-        # print(y_test.head(1+i), '\n', i)
-        _img = list(y_test.head(1+i))[i]
-        desc = data.get(str(y_test.index[i]))
-        pred = net.test(X_test, y_test)
-        img_src = round(pred[i])
-
-        c = 0
-        for g, img in enumerate(pred):
-            if round(img) == list(y_test)[g]:
-                # print(f'{list(y_test)[g]=}, {round(img)=}')
-                c += 1
-
-        print(f'Count: {c}, {((c/len(y_test))*100):.3f}%')
-
-        # print(pred)
-        if _img == img_src and i+2 <= len(y_test):
-            print(f'{_img=} == {img_src=}')
-            return get_images(X_test, y_test, i+1)
-        return _img, img_src, desc, c, ((c/len(y_test))*100)
-
-    def make_solutions():
-        test_X, test_y, test_y_indexes = loader.load_data('data.csv', ["description",'id'], filters)
-        p = net.test(test_X)
-        # print(p)
-        data = {}
-        with open('data.csv', 'r', encoding='utf-8') as f:
-            reader = csv.reader(f, delimiter=',', quotechar='"')
-            for i, row in enumerate(reader, start=-1):
-                if i == -1:
-                    continue
-                if i < len(p):
-                    data[row[0]] = p[i]
-                else:
-                    break
-        d = re.sub(r'[\-\:\.]', '_', re.sub(r'\s', 'T', str(datetime.datetime.today())))
-        with open(f'solution_{d}.csv', 'w', encoding='utf-8') as f:
-            f.write('id,object_img\n')
-            for key, value in list(data.items()):
-                f.write(f'{key},{round(value)}\n')
-        pywebio.output.toast('Решение сохранено!', color='success')
+def main():
+    global any_js, make_solutions, filters
+    pywebio.session.run_js(any_js)
+    pywebio.session.run_js(f"""console.log({str(json.dumps(filters))})""")
 
     def b():
-        global history
-
-        pywebio.session.run_js(f"""console.log({str(json.dumps(filters))})""")
-
-        X, y, y_indexes = loader.load_data('train.csv', ["description","object_img", 'id'], filters)
-        X_train, X_test, y_train, y_test = net.tts(X, y_indexes, test_size=0.3, random_state=42, shuffle=False)
-
-        net.train(X, y)
-
-        # print(dict(y_test))
+        global history, get_images, net
 
         _img, img_src, desc, count, percent = get_images(X_test, y_test)
-
-        # with open('history.txt', 'w+', encoding='utf-8') as h:
-        #     h.write(f'{str(datetime.datetime.today())} - Accuracy: {net.last_accuracy}')
 
         current_acc = float(re.findall(r'[\d\.]+', net.last_accuracy )[0])
         try:
@@ -161,5 +143,4 @@ def main():
 
 
 if __name__ == '__main__':
-    os.system('cls||clear')
     pywebio.start_server(main, port=8080, debug=True)

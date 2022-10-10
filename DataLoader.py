@@ -1,4 +1,4 @@
-import random
+import random, time
 import re, base64
 import pandas as pd
 
@@ -166,23 +166,26 @@ class DataLoader:
             return ', '.join(map(lambda x: x, f))
         return 'no_colors'
     # "[а-я]+\.\s[а-я"\.]+
-    def load_data(self, path: str, drop_fields:list, filters: list[dict]):
+    def load_data(self, path: str, drop_fields:list, filters: list[str]):
+        start = time.time()
         df = pd.read_csv(path)
         #print(list(df.values))
-        df['description'] = df.description.map(lambda x: x.lower())
         # df["random"] = df.description.map(lambda x: int(len(x) > 200))
         df["len_desc"] = df.description.map(lambda x: len(x))
+        # df["object"] = df["description"].map(lambda x : x.split()[0])
+        # df["object"] = pd.Categorical(df["object"])
+        # df["object"].astype('category').cat.codes
+        # df["object"] = df["object"].cat.codes
+        df['description'] = df.description.map(lambda x: x.lower())
 
         for i, word in enumerate(filters):
             df[f"param_{i}-0"] = df.description.map(lambda x: int(word in x))
-            df[f"param_{i}-1"] = df.description.map(lambda x: int(len(re.findall(fr'[\W\s]{word}', x)) > 0))
-            df[f"param_{i}-2"] = df.description.map(lambda x: int(len(re.findall(fr'{word}[\W\s]', x)) > 0))
-            df[f"param_{i}-3"] = df.description.map(lambda x: int(len(re.findall(fr'[\W\s]{word}[\W\s]', x)) > 0))
+            df[f"param_{i}-1"] = df.description.map(lambda x: int(len(re.findall(fr'[^а-яёa-z]{word}', x)) > 0))
+            df[f"param_{i}-2"] = df.description.map(lambda x: int(len(re.findall(fr'{word}[^а-яёa-z]', x)) > 0))
+            df[f"param_{i}-3"] = df.description.map(lambda x: int(len(re.findall(fr'[^а-яёa-z]{word}[^а-яёa-z]', x)) > 0))
             df[f"param_{i}-4"] = df.description.map(lambda x: int(f' {word}' in x))
             df[f"param_{i}-5"] = df.description.map(lambda x: int(f'{word} ' in x))
             df[f"param_{i}-6"] = df.description.map(lambda x: int(f' {word} ' in x))
-
-
 
         # df['фотог'] = df.description.map(lambda x: int('фото' in x))
         # df['моно'] = df.description.map(lambda x: int('монета' in x))
@@ -304,5 +307,5 @@ class DataLoader:
             y_indexes = pd.Series(list(df.get('object_img')), ids)
         else:
             y_indexes = None
-
+        print(f'Time for load data: {time.time() - start}')
         return X, y, y_indexes
