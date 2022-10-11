@@ -41,12 +41,16 @@ for filt in filters_1:
 
 filters = list(set(filters))
 
-
 def get_images(X_test, y_test, i = 0):
     global data
     _img = list(y_test.head(1+i))[i]
     desc = data.get(str(y_test.index[i]))
     pred = net.test(X_test, y_test)
+
+    for p in pred:
+        if p > 10000:
+            print('Error!', p)
+            break
     img_src = round(pred[i])
 
     c = 0

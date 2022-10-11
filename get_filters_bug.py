@@ -1,26 +1,26 @@
-import csv, re, itertools
+import csv, re, pymorphy2, itertools
 from collections import Counter
-import pymorphy2
 
 morphy = pymorphy2.MorphAnalyzer(lang='ru')
 
 def get_crossing(str1, strs):
     res = ''
-    for s in str1:
+    for i, s in enumerate(str1):
         a = True
         for s1 in strs:
-            if not s in s1:
+            if i >= len(s1) or not s == s1[i]:
                 a = False
         if a:
             res += s
         else:
-            break
+            return res
     return res
 
 def word_process(s: str):
     res = morphy.parse(s)[0]
-    strs = list(set(map(lambda x: x.word, res.lexeme)))
-    return get_crossing(s, strs)
+    l = list(map(lambda x: x.word, res.lexeme))
+    l.append(get_crossing(s, l))
+    return l
 
 def get_combs(s:str, l: int):
     global morphy
@@ -36,6 +36,7 @@ def get_filters(path:str):
     global word_process
     filters = []
     words_lists = []
+    words_lists_2 = []
     text = ''
 
     words = []
@@ -45,31 +46,24 @@ def get_filters(path:str):
         reader = csv.reader(f, delimiter=',', quotechar='"')
         lines = list(reader)[1:]
         for i, row in enumerate(lines):
-            line = re.sub(r'\s+', ' ', re.sub(r'[^a-zA-Zа-яёА-ЯЁ\d]', ' ', row[1])).strip()
-            words_lists.append(line)
+            words_lists.append(re.sub(r'\s+', ' ', re.sub(r'[^a-zA-Zа-яёА-ЯЁ\d]', ' ', row[1])).strip())
+            words_lists_2.append(re.sub(r'\s+', ' ', row[1]).strip())
         text = dict(Counter((' '.join(words_lists)).lower().split(' ')))
         for key, value in text.items():
             if value > 30 and len(key) >= 3:
                 words.append(key)
         for n, w in enumerate(words):
-            r = word_process(w)
-            if len(r) > 0:
-                filters.append(r)
+            filters.extend(word_process(w))
 
         text_2 = dict(Counter(list((re.sub(r'\s+', '', ''.join(words_lists))).lower())))
         for key, value in text_2.items():
-            if value > 30:
+            if value > 100 and value < 10000:
                 symbols.append(key)
         for n, s in enumerate(symbols):
-            # if n > 00:
-            #     break
             filters.append(s)
         t = (' '.join(words_lists)).lower()
         for i in get_combs('0123456789', 5):
             b = t.count(i)
-            if b > 0 and b < 2500:
+            if b > 30:
                 filters.append(i)
-        return sorted(filters)
-
-if __name__ == "__main__":
-    print(get_filters())
+        return list(filter(lambda x: len(x.strip()) > 0, sorted(filters)))

@@ -37,6 +37,12 @@ os.system('cls||clear')
 filters_1 = get_filters('train.csv')
 filters_2 = get_filters('data.csv')
 filters = list(set([*filters_1, *filters_2]))
+# filters = []
+# for filt in filters_1:
+#     if filt in filters_2:
+#         filters.append(filt)
+
+# filters = list(set(filters))
 def get_images(X_test, y_test, i = 0):
     pred = net.test(X_test, y_test)
     formatted_data = {}
